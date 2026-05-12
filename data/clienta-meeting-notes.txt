@@ -1,0 +1,52 @@
+DISCOVERY CALL NOTES — ClientA
+Date: 2026-03-14
+Attendees: Alex (AE), Sarah Chen (VP RevOps), Priya Nair (Dir. Engineering)
+Duration: 52 minutes
+
+PAIN POINTS SURFACED
+--------------------
+1. Manual reporting burden
+   Sarah described her team spending ~15 hours/week pulling data from three
+   disconnected systems (Salesforce, NetSuite, a homegrown data warehouse)
+   to produce the weekly revenue report for the exec team. The process is
+   error-prone and she had an incident in January where a board deck had
+   incorrect churn numbers.
+
+2. Lack of real-time pipeline visibility
+   The current stack gives them a 24-hour lag on pipeline data. Sales managers
+   are making coaching decisions based on stale information. Sarah said this
+   caused them to miss a renewal risk signal on a $90k account in Q4 2025.
+
+3. SSO and IT compliance
+   Priya flagged that any new vendor must support SAML 2.0 SSO via Okta and
+   must pass their InfoSec review process. Previous vendor evaluations have
+   stalled at this stage. She also asked about SOC 2 Type II certification —
+   Alex confirmed the company holds this (needs to send the report).
+
+TIMELINE
+--------
+- Budget approved for Q2 2026 procurement
+- Implementation must begin no later than July 1, 2026 to meet a board
+  commitment Sarah made about having a unified data layer by Q3
+- Priya estimated 4-6 weeks for integration work on their side
+
+UNRESOLVED ACTION ITEM
+----------------------
+ACTION (Alex, due by 2026-03-21):
+  Send SOC 2 Type II report and Okta/SAML integration documentation to
+  Priya Nair. Priya said she cannot move forward with InfoSec review
+  without this. Alex said he would send "by end of next week."
+
+  STATUS: As of 2026-05-09, this has NOT been confirmed as sent.
+  The email thread shows Alex sent a message on 2026-03-20 asking his
+  SE team to pull the docs, but no confirmation of delivery to Priya.
+
+NOTES / IMPRESSIONS
+-------------------
+- Sarah is clearly the internal champion. She had done homework — referenced
+  a G2 review and had read the case study from a comparable customer.
+- Priya is skeptical but not hostile. She will approve if the integration
+  story is solid.
+- No mention of budget constraints during this call — Sarah said budget was
+  "already allocated" which suggests strong intent.
+- Company size: ~350 employees, ~80 in revenue/sales org.

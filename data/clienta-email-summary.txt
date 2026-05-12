@@ -1,0 +1,149 @@
+EMAIL THREAD SUMMARY — ClientA
+Thread range: 2026-03-20 through 2026-04-29
+Participants: Alex (alex@company.com), Sarah Chen (sarah.chen@clienta.com),
+              Priya Nair (priya.nair@clienta.com)
+
+=============================================================================
+EMAIL 1 OF 3 — Pricing Discussion
+Date: 2026-04-01
+From: Alex → Sarah Chen
+Subject: RE: Platform Proposal — ClientA
+
+Sarah,
+
+Thanks for the great conversation last week. As promised, here's the pricing
+breakdown for the 500-seat Enterprise tier:
+
+  - Core Platform: $140,000 ARR
+  - Advanced Analytics Add-on: $40,000 ARR
+  - Total: $180,000 ARR
+
+This includes unlimited API calls, priority support SLA (4-hour response),
+and dedicated onboarding. Let me know if you want to explore different
+seat tiers — we do have flexibility at volume.
+
+Best,
+Alex
+
+---
+
+From: Sarah Chen → Alex
+Date: 2026-04-03
+
+Alex, thanks for this. Quick question — we're actually closer to 350 seats
+right now, not 500. Would the price change at that tier? We don't want to
+pay for seats we won't use in year one. Happy to commit to a ramp if that
+helps.
+
+Also, Priya is asking about the SOC 2 report and Okta docs — did those
+ever get sent? She's been waiting.
+
+Sarah
+
+---
+
+From: Alex → Sarah Chen
+Date: 2026-04-04
+
+Sarah — great point on the seats. Let me pull together a 350-seat scenario
+and get back to you by EOW. On the SOC 2 / Okta docs, let me check with
+our SE team and confirm they were sent to Priya directly.
+
+Alex
+
+NOTE: No follow-up email on the 350-seat pricing was sent in this thread.
+The SOC 2 / Okta doc status remains unconfirmed.
+
+=============================================================================
+EMAIL 2 OF 3 — Integration Requirements
+Date: 2026-04-10
+From: Priya Nair → Alex
+Subject: Technical Questions Before InfoSec Review
+
+Alex,
+
+Following our deep-dive today, here are the open items from my side:
+
+1. API Rate Limits: What are the default rate limits for the data sync API?
+   We're planning to run batch jobs nightly and need to understand throughput.
+
+2. Okta SSO: Can you confirm SAML 2.0 is supported? And do you support
+   SCIM provisioning for automated user management?
+
+3. Data Residency: Our legal team flagged that any system holding customer
+   revenue data may need to comply with GDPR Article 17 (right to erasure).
+   Can you confirm your data deletion SLAs?
+
+I need answers to #1 and #2 before I can complete the InfoSec intake form.
+#3 may be a blocker depending on the answer.
+
+Priya
+
+---
+
+From: Alex → Priya Nair
+Date: 2026-04-11
+
+Priya,
+
+On #2 — yes, SAML 2.0 is fully supported. SCIM provisioning is on the
+roadmap for Q3 2026 but not GA yet. I'll flag this as a priority given
+your timeline.
+
+On #1 and #3 — let me loop in our Solutions Engineering team for exact
+numbers. Will follow up by April 15.
+
+Alex
+
+NOTE: No follow-up from Alex on #1 (API rate limits) or #3 (data deletion SLA)
+appears in the thread after April 11. These items were raised again verbally
+on the April 22 call by David Okafor (data residency/GDPR).
+
+=============================================================================
+EMAIL 3 OF 3 — Post-Call Follow-Up (Incomplete)
+Date: 2026-04-23
+From: Alex → Sarah Chen
+Subject: Great call yesterday — next steps
+
+Sarah,
+
+Really good conversation yesterday. A few things I'm tracking on my end:
+
+- Will get you the 350-seat pricing scenario this week
+- Following up internally on the EU data residency question David raised
+- Want to make sure David gets the right information before our next call —
+  can you share his email so I can loop him in directly?
+
+Happy to set up a quick 20-min call with David if that would help move
+things along.
+
+Alex
+
+---
+
+From: Sarah Chen → Alex
+Date: 2026-04-25
+
+Hi Alex, David's email is david.okafor@clienta.com. He's pretty hard to
+get time with — I'd suggest sending him a summary email rather than asking
+for a separate call. He tends to just want the facts.
+
+Also circling back — Priya mentioned she still hasn't gotten answers on
+the API rate limits. That's holding up her InfoSec intake. Any update?
+
+Sarah
+
+---
+
+From: Alex → Sarah Chen
+Date: 2026-04-28
+
+Sarah — got it, will reach out to David directly. On Priya's question,
+I'm still waiting to hear back from the SE team but will push for an
+answer before our May 12 call.
+
+Alex
+
+NOTE: As of 2026-05-09, no email has been sent to David Okafor. The API
+rate limit answer and 350-seat pricing scenario remain outstanding.
+=============================================================================

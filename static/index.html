@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pre-Call Assistant</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+
+    header { max-width: 1200px; margin: 0 auto 2rem; display: flex; align-items: flex-start; justify-content: space-between; }
+    header div h1 { font-size: 1.6rem; font-weight: 700; color: #f8fafc; letter-spacing: -0.02em; }
+    header div p  { color: #64748b; font-size: 0.9rem; margin-top: 0.3rem; }
+
+    .btn-about {
+      padding: 0.4rem 1rem;
+      background: #1e2330;
+      border: 1px solid #2d3548;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 0.2rem;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-about:hover { background: #252c3d; color: #e2e8f0; }
+
+    /* ── About modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #1a1f2e;
+      border: 1px solid #2d3548;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 720px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid #2d3548;
+      flex-shrink: 0;
+    }
+    .modal-header h2 { font-size: 1rem; font-weight: 700; color: #f8fafc; }
+    .modal-close {
+      background: none; border: none; color: #64748b;
+      font-size: 1.3rem; cursor: pointer; line-height: 1;
+      padding: 0.2rem 0.4rem; border-radius: 4px;
+    }
+    .modal-close:hover { color: #e2e8f0; background: #252c3d; }
+
+    .modal-body {
+      padding: 1.25rem 1.5rem;
+      overflow-y: auto;
+      font-size: 0.875rem;
+      line-height: 1.65;
+      color: #cbd5e1;
+    }
+    .modal-body h3 {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #64748b;
+      margin: 1.25rem 0 0.5rem;
+    }
+    .modal-body h3:first-child { margin-top: 0; }
+    .modal-body p { margin-bottom: 0.5rem; color: #94a3b8; }
+    .modal-body a { color: #6366f1; text-decoration: none; }
+    .modal-body a:hover { text-decoration: underline; }
+    .modal-body pre {
+      background: #0f1117;
+      border: 1px solid #2d3548;
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      overflow-x: auto;
+      margin: 0.4rem 0 1rem;
+      position: relative;
+    }
+    .modal-body code {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 0.78rem;
+      color: #e2e8f0;
+      white-space: pre;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 0.5rem; right: 0.5rem;
+      background: #1e2330; border: 1px solid #2d3548;
+      border-radius: 5px; color: #64748b;
+      font-size: 0.7rem; padding: 0.2rem 0.5rem;
+      cursor: pointer; transition: color 0.15s;
+    }
+    .copy-btn:hover { color: #e2e8f0; }
+
+    /* ── Mode selector ── */
+    .mode-row {
+      max-width: 1200px;
+      margin: 0 auto 1rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .mode-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #64748b;
+      margin-right: 0.25rem;
+    }
+    .mode-btn {
+      padding: 0.35rem 0.9rem;
+      border-radius: 99px;
+      border: 1px solid #2d3548;
+      background: #1e2330;
+      color: #64748b;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.12s, color 0.12s, border-color 0.12s;
+    }
+    .mode-btn:hover { color: #e2e8f0; background: #252c3d; }
+    .mode-btn.active-local { background: #1d3a5e; border-color: #60a5fa; color: #60a5fa; }
+    .mode-btn.active-api   { background: #2d1f5e; border-color: #a78bfa; color: #a78bfa; }
+    .mode-btn.active-mcp   { background: #064e3b; border-color: #34d399; color: #34d399; }
+    .mode-btn.active-all   { background: #312e81; border-color: #6366f1; color: #c7d2fe; }
+
+    /* ── Controls row ── */
+    .controls {
+      max-width: 1200px;
+      margin: 0 auto 2rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: stretch;
+    }
+
+    .controls input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: #1e2330;
+      border: 1px solid #2d3548;
+      border-radius: 8px;
+      color: #e2e8f0;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .controls input:focus { border-color: #6366f1; }
+    .controls input::placeholder { color: #475569; }
+    .controls input.transcribing { border-color: #f87171; animation: pulse-border 1s ease-in-out infinite; }
+
+    @keyframes pulse-border {
+      0%, 100% { border-color: #f87171; }
+      50%       { border-color: #7f1d1d; }
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-primary   { background: #6366f1; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #4f52d9; }
+
+    .btn-secondary { background: #1e2330; color: #94a3b8; border: 1px solid #2d3548; }
+    .btn-secondary:hover:not(:disabled) { background: #252c3d; }
+
+    /* Mic button */
+    .btn-mic {
+      width: 46px;
+      padding: 0;
+      background: #1e2330;
+      border: 1px solid #2d3548;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-mic:hover { background: #252c3d; }
+    .btn-mic.recording {
+      background: #450a0a;
+      border-color: #f87171;
+      animation: pulse-bg 1s ease-in-out infinite;
+    }
+    @keyframes pulse-bg {
+      0%, 100% { background: #450a0a; }
+      50%       { background: #7f1d1d; }
+    }
+
+    /* ── Status toast ── */
+    #voiceStatus {
+      max-width: 1200px;
+      margin: -1rem auto 1rem;
+      font-size: 0.8rem;
+      color: #64748b;
+      min-height: 1.2em;
+    }
+    #voiceStatus.error { color: #f87171; }
+
+    /* ── Summary bar ── */
+    .summary-bar {
+      max-width: 1200px;
+      margin: 0 auto 1.5rem;
+      display: none;
+      gap: 1rem;
+    }
+    .summary-bar.visible { display: flex; flex-wrap: wrap; }
+
+    .stat-card {
+      flex: 1;
+      min-width: 140px;
+      background: #1e2330;
+      border: 1px solid #2d3548;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      text-align: center;
+    }
+    .stat-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 0.4rem; }
+    .stat-card .value { font-size: 1.8rem; font-weight: 700; color: #f8fafc; }
+    .stat-card .sub   { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; }
+    .stat-card.fastest .value { color: #34d399; }
+    .stat-card.slowest .value { color: #f87171; }
+
+    /* ── Columns ── */
+    .columns {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1rem;
+    }
+
+    .col {
+      background: #1e2330;
+      border: 1px solid #2d3548;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .col.hidden { display: none; }
+
+    .col-header {
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid #2d3548;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .col-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; flex: 1; }
+    .col-title.local { color: #60a5fa; }
+    .col-title.api   { color: #a78bfa; }
+    .col-title.mcp   { color: #34d399; }
+
+    .badge {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.55rem;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+    .badge-time    { background: #252c3d; color: #94a3b8; }
+    .badge-fastest { background: #064e3b; color: #34d399; }
+    .badge-slowest { background: #450a0a; color: #f87171; }
+    .badge-error   { background: #3b1a1a; color: #f87171; }
+    .badge-pending { background: #252c3d; color: #64748b; }
+
+    /* Listen button in column header */
+    .btn-listen {
+      display: none;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.25rem 0.6rem;
+      background: #252c3d;
+      border: 1px solid #2d3548;
+      border-radius: 6px;
+      color: #94a3b8;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .btn-listen.ready { display: flex; }
+    .btn-listen:hover { background: #1e2330; color: #e2e8f0; }
+    .btn-listen.playing { color: #6366f1; border-color: #6366f1; }
+    .btn-listen:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .col-body {
+      padding: 1rem 1.25rem;
+      flex: 1;
+      overflow-y: auto;
+      max-height: 520px;
+    }
+    .col-body .placeholder { color: #475569; font-size: 0.875rem; text-align: center; margin-top: 3rem; }
+    .col-body .error-msg   { color: #f87171; font-size: 0.85rem; }
+
+    /* ── Markdown rendering ── */
+    .brief-content { font-size: 0.875rem; line-height: 1.65; color: #cbd5e1; }
+    .brief-content h1, .brief-content h2 { color: #f1f5f9; font-size: 0.95rem; margin: 1rem 0 0.4rem; }
+    .brief-content h3   { color: #e2e8f0; font-size: 0.875rem; margin: 0.75rem 0 0.3rem; }
+    .brief-content strong { color: #e2e8f0; }
+    .brief-content p    { margin-bottom: 0.5rem; }
+    .brief-content ul, .brief-content ol { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    .brief-content li   { margin-bottom: 0.25rem; }
+    .brief-content hr   { border: none; border-top: 1px solid #2d3548; margin: 0.75rem 0; }
+    .brief-content table { border-collapse: collapse; width: 100%; margin-bottom: 0.75rem; font-size: 0.8rem; }
+    .brief-content th, .brief-content td { border: 1px solid #2d3548; padding: 0.35rem 0.6rem; text-align: left; }
+    .brief-content th   { background: #252c3d; color: #94a3b8; }
+
+    /* ── Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid #2d3548;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 0.4rem;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-row {
+      display: flex;
+      align-items: center;
+      color: #64748b;
+      font-size: 0.85rem;
+      margin-top: 3rem;
+      justify-content: center;
+    }
+
+    /* ── Bar chart ── */
+    .bar-wrap {
+      max-width: 1200px;
+      margin: 1.5rem auto 0;
+      background: #1e2330;
+      border: 1px solid #2d3548;
+      border-radius: 12px;
+      padding: 1.25rem 1.5rem;
+      display: none;
+    }
+    .bar-wrap.visible { display: block; }
+    .bar-wrap h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.07em; color: #64748b; margin-bottom: 1rem; }
+
+    .bar-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.6rem; }
+    .bar-label { width: 60px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
+    .bar-label.local { color: #60a5fa; }
+    .bar-label.api   { color: #a78bfa; }
+    .bar-label.mcp   { color: #34d399; }
+    .bar-track { flex: 1; background: #252c3d; border-radius: 99px; height: 10px; overflow: hidden; }
+    .bar-fill  { height: 100%; border-radius: 99px; transition: width 0.6s ease; }
+    .bar-fill.local { background: #60a5fa; }
+    .bar-fill.api   { background: #a78bfa; }
+    .bar-fill.mcp   { background: #34d399; }
+    .bar-time  { font-size: 0.8rem; color: #94a3b8; min-width: 50px; text-align: right; }
+
+    /* ── Audio player strip ── */
+    .audio-strip {
+      display: none;
+      padding: 0.5rem 1.25rem 0.75rem;
+      border-top: 1px solid #2d3548;
+    }
+    .audio-strip.visible { display: block; }
+    .audio-strip audio { width: 100%; height: 32px; accent-color: #6366f1; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Pre-Call Assistant</h1>
+    <p>Generate a pre-call brief using local files, Google API, or MCP</p>
+  </div>
+  <button class="btn-about" onclick="document.getElementById('aboutModal').classList.add('open')">About</button>
+</header>
+
+<!-- About modal -->
+<div class="modal-overlay" id="aboutModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>About — Pre-Call Assistant</h2>
+      <button class="modal-close" onclick="document.getElementById('aboutModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <h3>Starting the server</h3>
+      <p>From the project root, start the FastAPI server with <code>uv</code>:</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>uv run python main.py</code></pre>
+      <p>The server starts on <strong>port 8000</strong> with hot-reload enabled.</p>
+
+      <h3>Frontend client</h3>
+      <p>Open the app in your browser:</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>http://localhost:8000</code></pre>
+
+      <h3>Environment setup</h3>
+      <p>Fill in your keys in <code>.env</code>:</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>ANTHROPIC_API_KEY=sk-ant-...
+ELEVENLABS_API_KEY=...        # for /transcribe (STT)
+ELEVENLABS_VOICE_ID=...       # free premade voice ID
+GMAIL_MCP_URL=...             # MCP mode only
+GDRIVE_MCP_URL=...            # MCP mode only</code></pre>
+      <p>For API mode, run the one-time Google OAuth flow first:</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>uv run python scripts/get_token.py</code></pre>
+
+      <h3>curl — Local mode</h3>
+      <p>Reads context from <code>data/*.txt</code> files — no external APIs needed.</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -s -X POST http://localhost:8000/brief \
+  -H "Content-Type: application/json" \
+  -d '{"query": "prep me for my call with ClientA", "mode": "local"}' \
+  | python3 -m json.tool</code></pre>
+
+      <h3>curl — API mode</h3>
+      <p>Fetches live context from Gmail and Google Drive via OAuth. Requires <code>token.json</code>.</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -s -X POST http://localhost:8000/brief \
+  -H "Content-Type: application/json" \
+  -d '{"query": "prep me for my call with ClientA", "mode": "api"}' \
+  | python3 -m json.tool</code></pre>
+
+      <h3>curl — MCP mode</h3>
+      <p>Claude fetches context autonomously via MCP servers. Requires MCP URLs in <code>.env</code>.</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -s -X POST http://localhost:8000/brief \
+  -H "Content-Type: application/json" \
+  -d '{"query": "prep me for my call with ClientA", "mode": "mcp"}' \
+  | python3 -m json.tool</code></pre>
+
+      <h3>curl — Benchmark (all modes)</h3>
+      <p>Runs all configured modes and returns a side-by-side timing comparison.</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -s -X POST http://localhost:8000/benchmark \
+  -H "Content-Type: application/json" \
+  -d '{"query": "prep me for my call with ClientA"}' \
+  | python3 -m json.tool</code></pre>
+
+      <h3>curl — Transcribe (speech-to-text)</h3>
+      <p>Upload an audio file and get back the transcribed text via ElevenLabs STT.</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -s -X POST http://localhost:8000/transcribe \
+  -F "audio=@/path/to/recording.mp3" \
+  | python3 -m json.tool</code></pre>
+
+      <h3>curl — Speak (text-to-speech)</h3>
+      <p>Convert any text to speech via ElevenLabs TTS and save as MP3.</p>
+      <pre><button class="copy-btn" onclick="copyCode(this)">Copy</button><code>curl -s -X POST http://localhost:8000/speak \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Deal status: negotiation stage, one eighty K ARR."}' \
+  --output brief.mp3 && open brief.mp3</code></pre>
+
+    </div>
+  </div>
+</div>
+
+<div class="controls">
+  <!-- Mic button: hold to record, release to transcribe -->
+  <button class="btn-mic" id="micBtn" title="Hold to record your query">🎙</button>
+  <input id="queryInput" type="text"
+    placeholder="e.g. prep me for my call with ClientA"
+    value="prep me for my call with ClientA" />
+  <button class="btn btn-primary" id="runBtn" onclick="run()">Run</button>
+  <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+</div>
+
+<div id="voiceStatus"></div>
+
+<!-- Summary stats -->
+<div class="summary-bar" id="summaryBar">
+  <div class="stat-card">
+    <div class="label">Modes run</div>
+    <div class="value" id="statTotalVal">—</div>
+  </div>
+  <div class="stat-card fastest">
+    <div class="label">Fastest</div>
+    <div class="value" id="statFastestVal">—</div>
+    <div class="sub"   id="statFastestSub"></div>
+  </div>
+  <div class="stat-card slowest">
+    <div class="label">Slowest</div>
+    <div class="value" id="statSlowestVal">—</div>
+    <div class="sub"   id="statSlowestSub"></div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Speedup (fastest vs slowest)</div>
+    <div class="value" id="statSpeedupVal">—</div>
+  </div>
+</div>
+
+<!-- Mode selector -->
+<div class="mode-row">
+  <span class="mode-label">Mode</span>
+  <button class="mode-btn active-local" data-mode="local" onclick="selectMode('local')">Local</button>
+  <button class="mode-btn"              data-mode="api"   onclick="selectMode('api')">API</button>
+  <button class="mode-btn"              data-mode="mcp"   onclick="selectMode('mcp')">MCP</button>
+  <button class="mode-btn"              data-mode="all"   onclick="selectMode('all')">All (Benchmark)</button>
+</div>
+
+<!-- Brief columns -->
+<div class="columns" id="columns">
+  <div class="col" id="col-local">
+    <div class="col-header">
+      <span class="col-title local">Local</span>
+      <span class="badge badge-pending" id="badge-local">not run</span>
+      <button class="btn-listen" id="listen-local" onclick="speakBrief('local')" title="Read brief aloud">▶ Listen</button>
+    </div>
+    <div class="col-body" id="body-local">
+      <div class="placeholder">Results will appear here</div>
+    </div>
+    <div class="audio-strip" id="audio-local">
+      <audio id="player-local" controls></audio>
+    </div>
+  </div>
+
+  <div class="col hidden" id="col-api">
+    <div class="col-header">
+      <span class="col-title api">API</span>
+      <span class="badge badge-pending" id="badge-api">not run</span>
+      <button class="btn-listen" id="listen-api" onclick="speakBrief('api')" title="Read brief aloud">▶ Listen</button>
+    </div>
+    <div class="col-body" id="body-api">
+      <div class="placeholder">Results will appear here</div>
+    </div>
+    <div class="audio-strip" id="audio-api">
+      <audio id="player-api" controls></audio>
+    </div>
+  </div>
+
+  <div class="col hidden" id="col-mcp">
+    <div class="col-header">
+      <span class="col-title mcp">MCP</span>
+      <span class="badge badge-pending" id="badge-mcp">not run</span>
+      <button class="btn-listen" id="listen-mcp" onclick="speakBrief('mcp')" title="Read brief aloud">▶ Listen</button>
+    </div>
+    <div class="col-body" id="body-mcp">
+      <div class="placeholder">Results will appear here</div>
+    </div>
+    <div class="audio-strip" id="audio-mcp">
+      <audio id="player-mcp" controls></audio>
+    </div>
+  </div>
+</div>
+
+<!-- Bar chart -->
+<div class="bar-wrap" id="barWrap">
+  <h3>Response time comparison</h3>
+  <div id="barChart"></div>
+</div>
+
+<script>
+  const MODES = ["local", "api", "mcp"];
+  let currentMode = "local";
+
+  // Stores raw summary text per mode for TTS
+  const briefText = { local: null, api: null, mcp: null };
+
+  // ── Mode selection ──────────────────────────────────────────────────────
+
+  function selectMode(mode) {
+    currentMode = mode;
+
+    // Update pill styles
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+      const m = btn.dataset.mode;
+      btn.className = "mode-btn" + (m === mode ? ` active-${m}` : "");
+    });
+
+    // Show/hide columns
+    if (mode === "all") {
+      MODES.forEach(m => document.getElementById(`col-${m}`).classList.remove("hidden"));
+    } else {
+      MODES.forEach(m => {
+        const col = document.getElementById(`col-${m}`);
+        m === mode ? col.classList.remove("hidden") : col.classList.add("hidden");
+      });
+    }
+
+    // Summary + bar chart only relevant for benchmark
+    document.getElementById("summaryBar").classList.remove("visible");
+    document.getElementById("barWrap").classList.remove("visible");
+
+    // Update run button label
+    document.getElementById("runBtn").textContent = mode === "all" ? "Run Benchmark" : "Run";
+
+    // Reset results for newly visible columns
+    const toReset = mode === "all" ? MODES : [mode];
+    toReset.forEach(m => {
+      document.getElementById(`badge-${m}`).className = "badge badge-pending";
+      document.getElementById(`badge-${m}`).textContent = "not run";
+      document.getElementById(`body-${m}`).innerHTML = `<div class="placeholder">Results will appear here</div>`;
+      const lb = document.getElementById(`listen-${m}`);
+      lb.className = "btn-listen";
+      lb.textContent = "▶ Listen";
+      briefText[m] = null;
+    });
+  }
+
+  // ── Run dispatcher ──────────────────────────────────────────────────────
+
+  async function run() {
+    if (currentMode === "all") {
+      await runBenchmark();
+    } else {
+      await runSingle(currentMode);
+    }
+  }
+
+  async function runSingle(mode) {
+    const query = document.getElementById("queryInput").value.trim();
+    if (!query) return;
+    const runBtn = document.getElementById("runBtn");
+    runBtn.disabled = true;
+    runBtn.textContent = "Running…";
+
+    markLoading(mode);
+
+    try {
+      const resp = await fetch("/brief", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query, mode }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+        document.getElementById(`badge-${mode}`).className = "badge badge-error";
+        document.getElementById(`badge-${mode}`).textContent = "error";
+        document.getElementById(`body-${mode}`).innerHTML =
+          `<div class="error-msg">${escapeHtml(err.detail || "Unknown error")}</div>`;
+        return;
+      }
+      const data = await resp.json();
+      markResult(mode, { status: "ok", elapsed_seconds: data.elapsed_seconds, summary: data.summary });
+    } catch (e) {
+      document.getElementById(`badge-${mode}`).className = "badge badge-error";
+      document.getElementById(`badge-${mode}`).textContent = "error";
+      document.getElementById(`body-${mode}`).innerHTML = `<div class="error-msg">${escapeHtml(e.message)}</div>`;
+    } finally {
+      runBtn.disabled = false;
+      runBtn.textContent = "Run";
+    }
+  }
+
+  // ── Benchmark ────────────────────────────────────────────────────────────
+
+  function markLoading(mode) {
+    document.getElementById(`badge-${mode}`).className = "badge badge-pending";
+    document.getElementById(`badge-${mode}`).textContent = "running…";
+    document.getElementById(`body-${mode}`).innerHTML =
+      `<div class="loading-row"><span class="spinner"></span>Generating brief…</div>`;
+    document.getElementById(`listen-${mode}`).className = "btn-listen";
+    document.getElementById(`audio-${mode}`).className = "audio-strip";
+    briefText[mode] = null;
+  }
+
+  function markResult(mode, result) {
+    const badge = document.getElementById(`badge-${mode}`);
+    const body  = document.getElementById(`body-${mode}`);
+    const listenBtn = document.getElementById(`listen-${mode}`);
+
+    if (result.status !== "ok") {
+      badge.className = "badge badge-error";
+      badge.textContent = "error";
+      body.innerHTML = `<div class="error-msg">${escapeHtml(result.status)}</div>`;
+      return;
+    }
+
+    badge.className = "badge badge-time";
+    badge.textContent = `${result.elapsed_seconds}s`;
+
+    const text = result.summary || result.preview || "";
+    briefText[mode] = text;
+    body.innerHTML = `<div class="brief-content">${renderMarkdown(text)}</div>`;
+    listenBtn.className = "btn-listen ready";
+  }
+
+  function setBadgeRank(results) {
+    const ok = results.filter(r => r.status === "ok" && r.elapsed_seconds != null);
+    if (ok.length < 2) return;
+    const sorted = [...ok].sort((a, b) => a.elapsed_seconds - b.elapsed_seconds);
+    const fastest = sorted[0];
+    const slowest = sorted[sorted.length - 1];
+    document.getElementById(`badge-${fastest.mode}`).className = "badge badge-fastest";
+    document.getElementById(`badge-${fastest.mode}`).textContent = `${fastest.elapsed_seconds}s ⚡`;
+    document.getElementById(`badge-${slowest.mode}`).className = "badge badge-slowest";
+    document.getElementById(`badge-${slowest.mode}`).textContent = `${slowest.elapsed_seconds}s`;
+  }
+
+  function updateSummary(results) {
+    const ok = results.filter(r => r.status === "ok" && r.elapsed_seconds != null);
+    if (ok.length === 0) return;
+    document.getElementById("summaryBar").classList.add("visible");
+    const sorted = [...ok].sort((a, b) => a.elapsed_seconds - b.elapsed_seconds);
+    const fastest = sorted[0];
+    const slowest = sorted[sorted.length - 1];
+    document.getElementById("statTotalVal").textContent   = ok.length;
+    document.getElementById("statFastestVal").textContent = `${fastest.elapsed_seconds}s`;
+    document.getElementById("statFastestSub").textContent = fastest.mode.toUpperCase();
+    document.getElementById("statSlowestVal").textContent = `${slowest.elapsed_seconds}s`;
+    document.getElementById("statSlowestSub").textContent = slowest.mode.toUpperCase();
+    const speedup = ok.length > 1
+      ? (slowest.elapsed_seconds / fastest.elapsed_seconds).toFixed(1) + "×"
+      : "—";
+    document.getElementById("statSpeedupVal").textContent = speedup;
+  }
+
+  function renderBarChart(results) {
+    const ok = results.filter(r => r.status === "ok" && r.elapsed_seconds != null);
+    if (ok.length === 0) return;
+    document.getElementById("barWrap").classList.add("visible");
+    const max = Math.max(...ok.map(r => r.elapsed_seconds));
+    document.getElementById("barChart").innerHTML = ok.map(r => {
+      const pct = ((r.elapsed_seconds / max) * 100).toFixed(1);
+      return `
+        <div class="bar-row">
+          <span class="bar-label ${r.mode}">${r.mode}</span>
+          <div class="bar-track"><div class="bar-fill ${r.mode}" style="width:${pct}%"></div></div>
+          <span class="bar-time">${r.elapsed_seconds}s</span>
+        </div>`;
+    }).join("");
+  }
+
+  async function runBenchmark() {
+    const query = document.getElementById("queryInput").value.trim();
+    if (!query) return;
+    const runBtn = document.getElementById("runBtn");
+    runBtn.disabled = true;
+    runBtn.textContent = "Running…";
+
+    MODES.forEach(m => markLoading(m));
+    document.getElementById("summaryBar").classList.remove("visible");
+    document.getElementById("barWrap").classList.remove("visible");
+
+    try {
+      const resp = await fetch("/benchmark", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+        MODES.forEach(m => {
+          document.getElementById(`badge-${m}`).className = "badge badge-error";
+          document.getElementById(`badge-${m}`).textContent = "error";
+          document.getElementById(`body-${m}`).innerHTML =
+            `<div class="error-msg">${escapeHtml(err.detail || "Unknown error")}</div>`;
+        });
+        return;
+      }
+      const data = await resp.json();
+      const resultMap = Object.fromEntries(data.results.map(r => [r.mode, r]));
+      MODES.forEach(m => {
+        if (resultMap[m]) {
+          markResult(m, resultMap[m]);
+        } else {
+          document.getElementById(`badge-${m}`).className = "badge badge-pending";
+          document.getElementById(`badge-${m}`).textContent = "skipped";
+          document.getElementById(`body-${m}`).innerHTML = `<div class="placeholder">Not configured</div>`;
+        }
+      });
+      setBadgeRank(data.results);
+      updateSummary(data.results);
+      renderBarChart(data.results);
+    } catch (e) {
+      MODES.forEach(m => {
+        document.getElementById(`badge-${m}`).className = "badge badge-error";
+        document.getElementById(`badge-${m}`).textContent = "error";
+        document.getElementById(`body-${m}`).innerHTML = `<div class="error-msg">${escapeHtml(e.message)}</div>`;
+      });
+    } finally {
+      runBtn.disabled = false;
+      runBtn.textContent = "Run Benchmark";
+    }
+  }
+
+  function clearAll() {
+    const toReset = currentMode === "all" ? MODES : [currentMode];
+    toReset.forEach(m => {
+      document.getElementById(`badge-${m}`).className = "badge badge-pending";
+      document.getElementById(`badge-${m}`).textContent = "not run";
+      document.getElementById(`body-${m}`).innerHTML = `<div class="placeholder">Results will appear here</div>`;
+      const lb = document.getElementById(`listen-${m}`);
+      lb.className = "btn-listen";
+      lb.textContent = "▶ Listen";
+      briefText[m] = null;
+    });
+    document.getElementById("summaryBar").classList.remove("visible");
+    document.getElementById("barWrap").classList.remove("visible");
+    queryInput.value = "";
+    queryInput.placeholder = "e.g. prep me for my call with ClientA";
+    setVoiceStatus("");
+  }
+
+  // ── Text-to-speech ───────────────────────────────────────────────────────
+
+  let activeSpeechMode = null;
+
+  function speakBrief(mode) {
+    const text = briefText[mode];
+    if (!text) return;
+
+    // Clicking the active mode's button = stop
+    if (activeSpeechMode === mode) {
+      window.speechSynthesis.cancel();
+      // onend/onerror handles UI reset
+      return;
+    }
+
+    // Stop any other mode first
+    if (activeSpeechMode) {
+      window.speechSynthesis.cancel();
+      const prev = document.getElementById(`listen-${activeSpeechMode}`);
+      prev.className = "btn-listen ready";
+      prev.textContent = "▶ Listen";
+      activeSpeechMode = null;
+    }
+
+    const listenBtn = document.getElementById(`listen-${mode}`);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+
+    // Set mode immediately so a second click is detected as "stop"
+    activeSpeechMode = mode;
+    listenBtn.className = "btn-listen ready playing";
+    listenBtn.textContent = "⏹ Stop";
+
+    utterance.onend = utterance.onerror = () => {
+      activeSpeechMode = null;
+      listenBtn.className = "btn-listen ready";
+      listenBtn.textContent = "▶ Listen";
+    };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // ── Microphone / speech-to-text ──────────────────────────────────────────
+
+  let mediaRecorder = null;
+  let audioChunks   = [];
+  let micStream     = null;
+
+  const micBtn = document.getElementById("micBtn");
+  const queryInput = document.getElementById("queryInput");
+
+  micBtn.addEventListener("click", toggleRecording);
+  micBtn.title = "Click to start recording, click again to stop";
+
+  async function toggleRecording() {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      stopRecording();
+    } else {
+      await startRecording();
+    }
+  }
+
+  async function startRecording() {
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (err) {
+      setVoiceStatus("Microphone access denied.", true);
+      return;
+    }
+
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(micStream);
+    mediaRecorder.ondataavailable = ev => { if (ev.data.size > 0) audioChunks.push(ev.data); };
+
+    // Show "ready" state immediately so user knows to wait for the ⏹ before speaking
+    micBtn.textContent = "…";
+    setVoiceStatus("Starting microphone…");
+
+    mediaRecorder.onstart = () => {
+      micBtn.classList.add("recording");
+      micBtn.textContent = "⏹";
+      queryInput.classList.add("transcribing");
+      queryInput.placeholder = "Recording… click mic to stop";
+      setVoiceStatus("Recording — click the mic button again to stop");
+    };
+
+    mediaRecorder.start(100);
+  }
+
+  function stopRecording() {
+    if (!mediaRecorder || mediaRecorder.state !== "recording") return;
+
+    mediaRecorder.stop();
+    micStream.getTracks().forEach(t => t.stop());
+
+    micBtn.classList.remove("recording");
+    micBtn.textContent = "🎙";
+    queryInput.classList.remove("transcribing");
+    queryInput.placeholder = "e.g. prep me for my call with ClientA";
+    setVoiceStatus("Transcribing…");
+
+    mediaRecorder.onstop = async () => {
+      if (audioChunks.length === 0) {
+        setVoiceStatus("Recording too short — hold the button for at least 1 second.", true);
+        queryInput.placeholder = "e.g. prep me for my call with ClientA";
+        return;
+      }
+      const blob = new Blob(audioChunks, { type: "audio/webm" });
+      const form = new FormData();
+      form.append("audio", blob, "recording.webm");
+
+      try {
+        const resp = await fetch("/transcribe", { method: "POST", body: form });
+        if (!resp.ok) {
+          const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+          setVoiceStatus(`Transcription error: ${err.detail || resp.statusText}`, true);
+          queryInput.placeholder = "e.g. prep me for my call with ClientA";
+          return;
+        }
+        const data = await resp.json();
+        queryInput.value = data.text;
+        queryInput.placeholder = "e.g. prep me for my call with ClientA";
+        setVoiceStatus(`Transcribed: "${data.text}"`);
+      } catch (err) {
+        setVoiceStatus(`Transcription error: ${err.message}`, true);
+        queryInput.placeholder = "e.g. prep me for my call with ClientA";
+      }
+    };
+  }
+
+  function setVoiceStatus(msg, isError = false) {
+    const el = document.getElementById("voiceStatus");
+    el.textContent = msg;
+    el.className = isError ? "error" : "";
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+
+  function renderMarkdown(text) {
+    if (!text) return "";
+    let h = escapeHtml(text);
+    h = h.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+    h = h.replace(/^## (.+)$/gm,  "<h2>$1</h2>");
+    h = h.replace(/^# (.+)$/gm,   "<h1>$1</h1>");
+    h = h.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    h = h.replace(/\*(.+?)\*/g,     "<em>$1</em>");
+    h = h.replace(/^---+$/gm, "<hr>");
+    h = h.replace(/^\|(.+)\|$/gm, line => {
+      const cells = line.slice(1, -1).split("|").map(c => c.trim());
+      return "<tr>" + cells.map(c => `<td>${c}</td>`).join("") + "</tr>";
+    });
+    h = h.replace(/(<tr>.*<\/tr>\n?)+/gs, block => {
+      const rows = block.trim().split("\n").filter(r => r.startsWith("<tr>"));
+      const head = rows[0].replace(/<td>/g, "<th>").replace(/<\/td>/g, "</th>");
+      return `<table><thead>${head}</thead><tbody>${rows.slice(1).join("")}</tbody></table>`;
+    });
+    h = h.replace(/(^- .+\n?)+/gm, block => {
+      const items = block.trim().split("\n").map(l => `<li>${l.slice(2).trim()}</li>`).join("");
+      return `<ul>${items}</ul>`;
+    });
+    h = h.replace(/\n{2,}/g, "</p><p>");
+    h = h.replace(/\n/g, "<br>");
+    h = `<p>${h}</p>`;
+    h = h.replace(/<p>(<h[1-3]>|<ul>|<ol>|<table>|<hr>)/g, "$1");
+    h = h.replace(/(<\/h[1-3]>|<\/ul>|<\/ol>|<\/table>|<hr>)<\/p>/g, "$1");
+    return h;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  document.getElementById("queryInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") run();
+  });
+
+  // Close modal on Escape
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") document.getElementById("aboutModal").classList.remove("open");
+  });
+
+  function copyCode(btn) {
+    const code = btn.nextElementSibling.textContent;
+    navigator.clipboard.writeText(code).then(() => {
+      btn.textContent = "Copied!";
+      setTimeout(() => { btn.textContent = "Copy"; }, 1500);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+ACCOUNT BRIEF — ClientA
+Last updated: 2026-04-28
+
+DEAL OVERVIEW
+-------------
+Stage:        Negotiation
+Deal Value:   $180,000 ARR
+Product:      Enterprise Platform (core + advanced analytics add-on)
+Close Target: Q2 2026 (end of June)
+Contract Term: 3-year preferred; ClientA pushing for 1-year with renewal option
+
+KEY STAKEHOLDERS
+----------------
+Champion:
+  Name:  Sarah Chen
+  Title: VP of Revenue Operations
+  Notes: Has been driving the evaluation internally. Very responsive over email.
+         Joined our webinar in February and first reached out in March. Strong
+         internal advocate but does not have final budget authority.
+
+Economic Buyer:
+  Name:  David Okafor
+  Title: CFO
+  Notes: Joined the last call for the final 12 minutes. Introduced himself briefly,
+         asked one question about data residency (GDPR), then dropped. Has NOT
+         received a follow-up or been formally looped into the email thread since.
+         Sarah mentioned he will be the final sign-off.
+
+Technical Evaluator:
+  Name:  Priya Nair
+  Title: Director of Engineering
+  Notes: Concerned about API rate limits and SSO integration with Okta. Attended
+         the technical deep-dive on April 10. Her sign-off is required before
+         David will approve.
+
+OPEN QUESTIONS FROM LAST CALL (April 22)
+-----------------------------------------
+1. Data residency: David Okafor asked whether data can be stored in EU-only
+   infrastructure. This was not answered on the call — Alex said he would
+   follow up with the solutions engineering team. No response sent yet.
+
+2. Volume discount threshold: Sarah asked whether the $180k figure reflects
+   the 500-seat tier or if there's a lower price point for 350 seats (their
+   actual current headcount). Alex said pricing would be clarified offline.
+   Still unresolved.
+
+COMPETITIVE LANDSCAPE
+---------------------
+Competitor in process: Velodata (Series C SaaS, direct competitor)
+  - Sarah mentioned Velodata submitted a proposal on April 18 at $152k ARR
+    for comparable scope.
+  - ClientA is using this as leverage. Alex needs to be prepared to defend
+    value or discuss flexibility.
+  - Velodata does NOT have an EU data residency option — this could be a
+    differentiator if David Okafor's concern is genuine.
+
+NEXT CALL
+---------
+Scheduled: 2026-05-12 at 2:00 PM ET
+Attendees confirmed: Sarah Chen, Priya Nair
+Attendees unconfirmed: David Okafor (needs to be re-engaged before the call)

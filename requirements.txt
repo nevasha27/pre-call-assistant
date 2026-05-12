@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+anthropic
+python-dotenv
+requests
+google-api-python-client
+google-auth-oauthlib
+google-auth-httplib2
+python-multipart
