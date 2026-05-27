@@ -227,21 +227,6 @@ def _mcp_servers_configured() -> bool:
     return bool(GMAIL_MCP_URL and GDRIVE_MCP_URL)
 
 
-def _build_mcp_servers() -> list:
-    gmail_url = (GMAIL_MCP_URL or "").strip()
-    gdrive_url = (GDRIVE_MCP_URL or "").strip()
-    servers = []
-    entry = {"type": "url", "url": gmail_url, "name": "gmail"}
-    if GMAIL_MCP_TOKEN:
-        entry["authorization_token"] = GMAIL_MCP_TOKEN
-    servers.append(entry)
-    if gdrive_url != gmail_url:
-        entry2 = {"type": "url", "url": gdrive_url, "name": "gdrive"}
-        if GDRIVE_MCP_TOKEN:
-            entry2["authorization_token"] = GDRIVE_MCP_TOKEN
-        servers.append(entry2)
-    return servers
-
 
 # ---------------------------------------------------------------------------
 # Routes
@@ -299,23 +284,23 @@ async def generate_brief(req: BriefQuery):
                 status_code=503,
                 detail="MCP mode requires GMAIL_MCP_URL and GDRIVE_MCP_URL in .env",
             )
-        # Use the OAuth access token (from token.json) as the Bearer token for
-        # the MCP servers — Google MCP endpoints expect OAuth, not API keys.
-        creds = _get_google_creds()
+        gmail_url = (GMAIL_MCP_URL or "").strip()
+        gdrive_url = (GDRIVE_MCP_URL or "").strip()
         mcp_servers = [
             {
                 "type": "url",
-                "url": (GMAIL_MCP_URL or "").strip(),
-                "name": "gmail",
-                "authorization_token": creds.token,
-            },
-            {
-                "type": "url",
-                "url": (GDRIVE_MCP_URL or "").strip(),
-                "name": "gdrive",
-                "authorization_token": creds.token,
+                "url": gmail_url,
+                "name": "composio" if gmail_url == gdrive_url else "gmail",
+                "authorization_token": (GMAIL_MCP_TOKEN or "").strip(),
             },
         ]
+        if gdrive_url and gdrive_url != gmail_url:
+            mcp_servers.append({
+                "type": "url",
+                "url": gdrive_url,
+                "name": "gdrive",
+                "authorization_token": (GDRIVE_MCP_TOKEN or "").strip(),
+            })
         mcp_user_message = (
             f"{req.query}\n\n"
             "Search Google Drive for files related to the account in this query "
