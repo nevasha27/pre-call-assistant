@@ -237,6 +237,11 @@ async def serve_index():
     return FileResponse("static/index.html")
 
 
+@app.get("/slides")
+async def serve_slides():
+    return FileResponse("static/slides.html")
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}

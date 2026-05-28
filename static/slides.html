@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pre-Call Assistant — Project Summary</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0f1117; color: #e2e8f0; }
+
+  .deck { width: 100vw; height: 100vh; overflow: hidden; position: relative; }
+  .slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 60px 80px; opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
+  .slide.active { opacity: 1; pointer-events: all; }
+
+  .slide-number { position: absolute; bottom: 28px; right: 40px; font-size: 13px; color: #4a5568; letter-spacing: 1px; }
+  .nav { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 12px; z-index: 10; }
+  .nav button { background: #2d3748; border: none; color: #a0aec0; padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; transition: background 0.2s; }
+  .nav button:hover { background: #4a5568; }
+  .dot-nav { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; align-items: center; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #2d3748; cursor: pointer; transition: background 0.2s; }
+  .dot.active { background: #667eea; }
+
+  /* Slide 1 */
+  .s1 { background: linear-gradient(135deg, #0f1117 0%, #1a1f2e 100%); }
+  .s1 .tag { background: #2d3748; color: #a0aec0; font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; padding: 6px 14px; border-radius: 20px; margin-bottom: 28px; }
+  .s1 h1 { font-size: 52px; font-weight: 700; text-align: center; line-height: 1.15; margin-bottom: 20px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .s1 .subtitle { font-size: 20px; color: #a0aec0; text-align: center; max-width: 640px; line-height: 1.6; margin-bottom: 48px; }
+  .s1 .modes { display: flex; gap: 20px; }
+  .mode-pill { padding: 10px 22px; border-radius: 24px; font-size: 14px; font-weight: 600; }
+  .mode-pill.local  { background: #1e3a5f; color: #63b3ed; border: 1px solid #2b6cb0; }
+  .mode-pill.api    { background: #2d1b69; color: #b794f4; border: 1px solid #553c9a; }
+  .mode-pill.mcp    { background: #1a3d2b; color: #68d391; border: 1px solid #276749; }
+
+  /* Slide 2 */
+  .s2 { background: linear-gradient(135deg, #0f1117 0%, #1a1f2e 100%); align-items: flex-start; }
+  .s2 h2 { font-size: 38px; font-weight: 700; margin-bottom: 40px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .pillars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; width: 100%; }
+  .pillar { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 16px; padding: 28px; }
+  .pillar-icon { font-size: 28px; margin-bottom: 14px; }
+  .pillar h3 { font-size: 17px; font-weight: 700; color: #e2e8f0; margin-bottom: 12px; }
+  .pillar ul { list-style: none; padding: 0; }
+  .pillar ul li { font-size: 13.5px; color: #a0aec0; padding: 4px 0; padding-left: 16px; position: relative; line-height: 1.5; }
+  .pillar ul li::before { content: "→"; position: absolute; left: 0; color: #667eea; }
+
+  /* Slide 3 */
+  .s3 { background: linear-gradient(135deg, #0f1117 0%, #1a1f2e 100%); align-items: flex-start; }
+  .s3 h2 { font-size: 38px; font-weight: 700; margin-bottom: 40px; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; }
+  .result-card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 16px; padding: 28px; }
+  .result-card h3 { font-size: 15px; font-weight: 700; color: #a0aec0; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  .status-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; font-size: 14px; color: #e2e8f0; border-bottom: 1px solid #2d3748; }
+  .status-item:last-child { border-bottom: none; }
+  .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
+  .badge.green  { background: #1c4532; color: #68d391; }
+  .badge.yellow { background: #744210; color: #f6e05e; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #2d3748; font-size: 14px; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-val { font-weight: 700; color: #667eea; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- Slide 1: What We Built -->
+  <div class="slide s1 active">
+    <div class="tag">Project Summary</div>
+    <h1>Pre-Call Assistant</h1>
+    <p class="subtitle">An AI-powered intelligence platform that generates a full deal brief in seconds — pulling context from local files, live Gmail &amp; Drive, or MCP-connected tools.</p>
+    <div class="modes">
+      <div class="mode-pill local">Local Files</div>
+      <div class="mode-pill api">Google API</div>
+      <div class="mode-pill mcp">MCP Ready</div>
+    </div>
+    <div class="slide-number">1 / 3</div>
+  </div>
+
+  <!-- Slide 2: How We Built It -->
+  <div class="slide s2">
+    <h2>How It Works</h2>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="pillar-icon">⚙️</div>
+        <h3>Backend</h3>
+        <ul>
+          <li>FastAPI server with 6 endpoints</li>
+          <li>3 intelligence modes (Local, API, MCP)</li>
+          <li>Anthropic Claude claude-opus-4-6 for brief generation</li>
+          <li>Google OAuth for Gmail &amp; Drive access</li>
+          <li>Benchmark endpoint with elapsed timing</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">🖥️</div>
+        <h3>Frontend</h3>
+        <ul>
+          <li>Dark-themed single-page app</li>
+          <li>Mode selector with side-by-side results</li>
+          <li>Timing badges &amp; response-time bar chart</li>
+          <li>Click-to-toggle mic (ElevenLabs STT)</li>
+          <li>Built-in browser TTS (Web Speech API)</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <div class="pillar-icon">🔌</div>
+        <h3>MCP Integration</h3>
+        <ul>
+          <li>Anthropic mcp-client-2025-04-04 beta</li>
+          <li>Single or dual MCP server support</li>
+          <li>Provider-agnostic token auth</li>
+          <li>Parked pending Google MCP launch</li>
+          <li>.env ready — no code changes needed</li>
+        </ul>
+      </div>
+    </div>
+    <div class="slide-number">2 / 3</div>
+  </div>
+
+  <!-- Slide 3: Results & Status -->
+  <div class="slide s3">
+    <h2>Results &amp; Status</h2>
+    <div class="results-grid">
+      <div class="result-card">
+        <h3>Mode Status</h3>
+        <div class="status-item"><span class="badge green">LIVE</span> Local mode — data files, instant context</div>
+        <div class="status-item"><span class="badge green">LIVE</span> API mode — live Gmail &amp; Google Drive</div>
+        <div class="status-item"><span class="badge green">LIVE</span> Voice input — ElevenLabs STT transcription</div>
+        <div class="status-item"><span class="badge green">LIVE</span> Voice output — browser Web Speech API</div>
+        <div class="status-item"><span class="badge yellow">READY</span> MCP mode — awaiting Google MCP servers</div>
+      </div>
+      <div class="result-card">
+        <h3>Key Metrics</h3>
+        <div class="stat-row">Local brief generation <span class="stat-val">~45s</span></div>
+        <div class="stat-row">API brief generation <span class="stat-val">~21s</span></div>
+        <div class="stat-row">API endpoints built <span class="stat-val">6</span></div>
+        <div class="stat-row">MCP providers tested <span class="stat-val">3</span></div>
+        <div class="stat-row">GitHub repo <span class="stat-val">nevasha27/pre-call-assistant</span></div>
+      </div>
+    </div>
+    <div class="slide-number">3 / 3</div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="dot-nav">
+  <div class="dot active" onclick="goTo(0)"></div>
+  <div class="dot" onclick="goTo(1)"></div>
+  <div class="dot" onclick="goTo(2)"></div>
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const dots = document.querySelectorAll('.dot');
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dots[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    dots[current].classList.add('active');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goTo(current + 1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   goTo(current - 1);
+  });
+</script>
+</body>
+</html>
